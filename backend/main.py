@@ -11,8 +11,11 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 import numpy as np
 
 from .robot.model import load_robot, RobotModel
@@ -96,7 +99,7 @@ def _get_robot(request: Request) -> RobotModel:
 # ---------------------------------------------------------------------------
 
 @app.get("/api/robot/info", response_model=RobotInfoResponse, tags=["robot"])
-async def robot_info(request: Request):
+def robot_info(request: Request):
     """Return static robot metadata: joint names, limits, neutral config."""
     robot = _get_robot(request)
     model = robot.model
@@ -112,7 +115,7 @@ async def robot_info(request: Request):
 
 
 @app.post("/api/robot/fk", response_model=FKResponse, tags=["robot"])
-async def forward_kinematics(body: FKRequest, request: Request):
+def forward_kinematics(body: FKRequest, request: Request):
     """
     Compute forward kinematics.
 
@@ -149,7 +152,7 @@ async def forward_kinematics(body: FKRequest, request: Request):
 
 
 @app.post("/api/targets/reachability", response_model=ReachabilityResponse, tags=["targets"])
-async def check_targets_reachability(body: ReachabilityRequest, request: Request):
+def check_targets_reachability(body: ReachabilityRequest, request: Request):
     """
     Check reachability of each target pose from a given robot base pose.
 
@@ -177,12 +180,12 @@ async def check_targets_reachability(body: ReachabilityRequest, request: Request
 
 
 @app.post("/api/optimize", response_model=OptimizeResponse, tags=["optimization"])
-async def optimize_base_pose(body: OptimizeRequest, request: Request):
+def optimize_base_pose(body: OptimizeRequest, request: Request):
     """
     Find the robot base pose (x, y, yaw) that maximises the number of
     reachable target poses.
 
-    Runs a coarse grid search followed by optional scipy L-BFGS-B refinement.
+    Brute-force grid search over (x, y, yaw); returns the best grid point.
     """
     robot = _get_robot(request)
 
@@ -196,7 +199,6 @@ async def optimize_base_pose(body: OptimizeRequest, request: Request):
         y_range=tuple(body.y_range),       # type: ignore[arg-type]
         yaw_range=tuple(body.yaw_range),   # type: ignore[arg-type]
         grid_resolution=body.grid_resolution,
-        refine=body.refine,
     )
 
     n = len(body.targets)
@@ -211,6 +213,25 @@ async def optimize_base_pose(body: OptimizeRequest, request: Request):
         score=result.score,
         method=result.method,
     )
+
+
+@app.get("/api/robot/urdf", tags=["robot"])
+def get_urdf(request: Request):
+    """Return the raw URDF XML for the loaded robot."""
+    robot = _get_robot(request)
+    return FileResponse(robot.urdf_path, media_type="application/xml")
+
+
+@app.get("/api/robot/meshes/{filepath:path}", tags=["robot"])
+def get_mesh(filepath: str, request: Request):
+    """Serve mesh assets (DAE/STL/OBJ) referenced by the URDF."""
+    robot = _get_robot(request)
+    file_path = (robot.mesh_base_dir / filepath).resolve()
+    if not file_path.is_relative_to(robot.mesh_base_dir.resolve()):
+        raise HTTPException(status_code=404, detail="File not found")
+    if not file_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(file_path)
 
 
 @app.get("/health", tags=["meta"])

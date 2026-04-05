@@ -17,7 +17,7 @@ import { Grid, OrbitControls, PerspectiveCamera } from "@react-three/drei";
 
 import { useStore } from "../store/useStore";
 import { GroundPlane } from "./GroundPlane";
-import { RobotVisual } from "./RobotVisual";
+import { URDFRobot } from "./URDFRobot";
 import { TargetPose } from "./TargetPose";
 import { BasePoseVisual } from "./BasePoseVisual";
 
@@ -29,7 +29,7 @@ const SCENE_BG = "#1C1510"; // dark peat
 export function Scene3D() {
   const targets        = useStore((s) => s.targets);
   const reachabilityMap= useStore((s) => s.reachabilityMap);
-  const fkData         = useStore((s) => s.fkData);
+  const robotInfo      = useStore((s) => s.robotInfo);
   const basePose       = useStore((s) => s.basePose);
   const addTarget      = useStore((s) => s.addTarget);
   const removeTarget   = useStore((s) => s.removeTarget);
@@ -115,7 +115,7 @@ export function Scene3D() {
       {/* ── Scene objects ── */}
       <BasePoseVisual base={basePose} />
 
-      {fkData && <RobotVisual fkData={fkData} />}
+      {robotInfo && <URDFRobot basePose={basePose} robotInfo={robotInfo} />}
 
       {targets.map((target) => (
         <TargetPose

@@ -88,7 +88,6 @@ class OptimizeRequest(BaseModel):
     y_range: list[float] = Field([-2.0, 2.0], min_length=2, max_length=2)
     yaw_range: list[float] = Field([0.0, 6.2832], min_length=2, max_length=2)
     grid_resolution: int = Field(10, ge=3, le=30, description="Points per axis in grid search")
-    refine: bool = Field(True, description="Run scipy local refinement after grid search")
 
 
 class OptimizeResponse(BaseModel):
@@ -98,7 +97,7 @@ class OptimizeResponse(BaseModel):
     reachable_count: int
     reachable_fraction: float
     score: float
-    method: str = "grid+scipy"
+    method: str = "grid"
 
 
 class RobotInfoResponse(BaseModel):

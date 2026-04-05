@@ -73,7 +73,6 @@ export function fetchOptimize(
     y_range?: [number, number];
     yaw_range?: [number, number];
     grid_resolution?: number;
-    refine?: boolean;
   } = {},
 ): Promise<OptimizeResponse> {
   return post<OptimizeResponse>("/optimize", {
@@ -82,6 +81,5 @@ export function fetchOptimize(
     y_range: opts.y_range ?? [-2.0, 2.0],
     yaw_range: opts.yaw_range ?? [0, 6.2832],
     grid_resolution: opts.grid_resolution ?? 10,
-    refine: opts.refine ?? true,
   });
 }

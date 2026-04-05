@@ -42,6 +42,9 @@ class RobotModel:
     ik_active_mask: list[bool] = field(default_factory=list)
     # Ordered list of frame names used for stick-figure visualisation
     viz_frame_names: list[str] = field(default_factory=list)
+    # Paths for serving URDF + mesh assets to the frontend
+    urdf_path: Path = field(default=None)
+    mesh_base_dir: Path = field(default=None)
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +137,8 @@ def _load_panda() -> RobotModel:
         ik_chain=ik_chain,
         ik_active_mask=active_mask,
         viz_frame_names=viz_frames,
+        urdf_path=urdf_path,
+        mesh_base_dir=Path(mesh_dir),
     )
 
 

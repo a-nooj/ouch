@@ -57,15 +57,18 @@ export const useStore = create<Store>((set, get) => ({
   isCheckingReachability: false,
   backendError: null,
 
-  // ── Load robot metadata once at startup ──
+  // ── Load robot metadata once at startup (retries on transient failure) ──
   loadRobotInfo: async () => {
-    try {
-      const info: RobotInfo = await fetchRobotInfo();
-      set({ robotInfo: info, backendError: null });
-      // Immediately compute FK at neutral config + default base
-      await get().refreshFK();
-    } catch (err) {
-      set({ backendError: String(err) });
+    for (let attempt = 0; attempt < 5; attempt++) {
+      if (attempt > 0) await new Promise((r) => setTimeout(r, 2000));
+      try {
+        const info: RobotInfo = await fetchRobotInfo();
+        set({ robotInfo: info, backendError: null });
+        await get().refreshFK();
+        return;
+      } catch (err) {
+        if (attempt === 4) set({ backendError: String(err) });
+      }
     }
   },
 
@@ -135,7 +138,6 @@ export const useStore = create<Store>((set, get) => ({
     try {
       const result: OptimizeResponse = await fetchOptimize(targets, {
         grid_resolution: gridResolution,
-        refine: true,
       });
       // Update base pose and reachability map from optimisation result
       const map: ReachabilityMap = {};
