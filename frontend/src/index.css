@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base resets ─────────────────────────────────────────────────────────── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    @apply font-sans text-foreground bg-background;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ── Grain texture overlay ───────────────────────────────────────────────── */
+/*
+ * Applied to the sidebar panel via .grain class.
+ * Uses an SVG feTurbulence noise filter as a background-image on an
+ * absolutely-positioned pseudo-element so it overlays the panel content
+ * with a subtle paper-like grain. mix-blend-mode: overlay keeps it
+ * light-aware — dark content reads slightly rougher, light areas shimmer.
+ */
+@layer utilities {
+  .grain {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 50;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    opacity: 0.045;
+    mix-blend-mode: overlay;
+  }
+}
+
+/* ── Organic range slider ────────────────────────────────────────────────── */
+.organic-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  /* background is set via inline style for the live fill gradient */
+}
+
+.organic-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #5d7052;
+  cursor: pointer;
+  margin-top: -7px;
+  box-shadow: 0 2px 8px rgba(93, 112, 82, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.organic-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 12px rgba(93, 112, 82, 0.5);
+}
+
+.organic-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+}
+
+.organic-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: #5d7052;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(93, 112, 82, 0.35);
+}
+
+.organic-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+}
+
+/* ── Thin organic scrollbar ──────────────────────────────────────────────── */
+.organic-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #ded8cf transparent;
+}
+
+.organic-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.organic-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.organic-scroll::-webkit-scrollbar-thumb {
+  background-color: #ded8cf;
+  border-radius: 2px;
+}
+
+.organic-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #c8c0b5;
+}

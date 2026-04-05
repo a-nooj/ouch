@@ -1,0 +1,46 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      network: host   # needed to reach PyPI during build
+    runtime: runc
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount backend source for hot-reload during development
+      - ./backend:/app/backend:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "/app/.venv/bin/python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ouch-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      network: host
+    runtime: runc
+    ports:
+      - "5173:5173"
+    volumes:
+      # Bind-mount src for hot-reload; node_modules comes from the image
+      - ./frontend/src:/app/src
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - ouch-net
+
+networks:
+  ouch-net:
+    driver: bridge

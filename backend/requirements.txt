@@ -1,0 +1,6 @@
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+numpy>=1.24.0
+scipy>=1.11.0
+# pinocchio and example-robot-data must be installed via conda:
+#   conda install -c conda-forge pinocchio example-robot-data
